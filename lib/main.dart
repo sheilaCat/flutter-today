@@ -26,6 +26,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
 
   var habitsList = [];
+  var percentage = 0.0;
 
   void _handleEditHabit(habit) {
     
@@ -35,60 +36,71 @@ class _MyHomePageState extends State<MyHomePage> {
         'count': 0
       });
     });
-
   }
 
-  void _handleDismissed(direction, index) {
+  void _onPanUpdate (details) {
+
+    // 从右到左滑
+    var deltaX = details.delta.dx;
+    if (deltaX <= 0) {
+      setState(() {
+        percentage += deltaX;
+      });
+    }
+  }
+
+  void _handlePanEnd (details) {
     setState(() {
-      habitsList.removeAt(index);
+      percentage = 0;
     });
   }
 
+
   List<Widget> _buildCard() {
     return this.habitsList.asMap().map((index, habit) {
-      return MapEntry(index, Dismissible(
-        key: Key('key${index}'),
-        background: Container(
-          color: Colors.green,
-          child: ListTile(
-            leading: Icon(
-              Icons.bookmark,
-              color: Colors.white,
-            ),
-          ),
-        ),
-        secondaryBackground: Container(
-          color: Colors.green,
-          child: ListTile(
-            trailing: Icon(
-              Icons.done,
-              color: Colors.white
-            ),
-          ),
-        ),
-        onDismissed: (direct) => _handleDismissed(direct, index),
+      return MapEntry(index, GestureDetector(
+        onPanUpdate: this._onPanUpdate,
+        onPanEnd: this._handlePanEnd,
         child: 
-          Card(
-            child: 
-              ListTile(
-                trailing: Icon(Icons.check_circle_outline),
-                title: Text(
-                  habit['name'],
-                  style: TextStyle(
-                    // color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16
-                  )
-                ),
-                subtitle: Text(
-                  habit['count'].toString() + '次签到',
-                  style: TextStyle(
-                    // color: Colors.grey[350]
-                  )
-                )
+          Stack(
+            children: <Widget>[
+              Positioned(
+                right:-60-percentage,
+                child: 
+                  Container(
+                    alignment: Alignment.center,
+                    padding: EdgeInsets.all(20),
+                    child: Icon(
+                      Icons.check_circle,
+                      color: Colors.white,
+                      size: 30
+                    ),
+                  ),
               ),
-          ))
-      );
+              Container(
+                transform: Matrix4.translationValues(percentage, 0, 0),
+                child:
+                  ListTile(
+                    trailing: Icon(Icons.check_circle_outline),
+                    title: Text(
+                      habit['name'],
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16
+                      )
+                    ),
+                    subtitle: Text(
+                      habit['count'].toString() + '次签到',
+                      style: TextStyle(
+                        color: Colors.grey[350]
+                      )
+                    )
+                  ),
+              ),
+            ],
+          )
+      ));
     }).values.toList();
   }
 
@@ -123,7 +135,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ],  
         ),
-      // floatingActionButtonLocation: FloatingActionButtonLocation.miniStartTop,
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniStartTop,
       floatingActionButton: FloatingActionButton(
         mini: true,
         onPressed: () {
