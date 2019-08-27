@@ -27,6 +27,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   var habitsList = [];
   var percentage = 0.0;
+  var activeIndex = 0; // 当前操作的条目
 
   void _handleEditHabit(habit) {
     
@@ -38,7 +39,9 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  void _onPanUpdate (details) {
+  void _onPanUpdate (details, index) {
+    // 记录当前操作的条目
+    activeIndex = index;
 
     // 从右到左滑
     var deltaX = details.delta.dx;
@@ -59,13 +62,15 @@ class _MyHomePageState extends State<MyHomePage> {
   List<Widget> _buildCard() {
     return this.habitsList.asMap().map((index, habit) {
       return MapEntry(index, GestureDetector(
-        onPanUpdate: this._onPanUpdate,
+        onPanUpdate: (details) {
+          this._onPanUpdate(details, index);
+        },
         onPanEnd: this._handlePanEnd,
         child: 
           Stack(
             children: <Widget>[
               Positioned(
-                right:-60-percentage,
+                right: -60-(index == activeIndex ? percentage : 0.0),
                 child: 
                   Container(
                     alignment: Alignment.center,
@@ -78,7 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
               ),
               Container(
-                transform: Matrix4.translationValues(percentage, 0, 0),
+                transform: Matrix4.translationValues(index == activeIndex ? percentage : 0.0, 0, 0),
                 child:
                   ListTile(
                     trailing: Icon(Icons.check_circle_outline),
@@ -155,6 +160,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
+// 新增一个习惯
 class EditHabit extends StatelessWidget {
   
   EditHabit({this.callback});
@@ -195,3 +201,6 @@ class EditHabit extends StatelessWidget {
     );
   }
 }
+
+// 编辑对应的习惯
+// todo ...
